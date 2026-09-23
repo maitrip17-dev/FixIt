@@ -1,0 +1,16 @@
+/**
+ * Reusable Role-Based Access Control middleware
+ * @param  {...string} allowedRoles - List of roles permitted to access the route
+ */
+const authorizeRoles = (...allowedRoles) => {
+  return (req, res, next) => {
+    if (!req.user || !allowedRoles.includes(req.user.role)) {
+      return res.status(403).json({
+        message: 'Access denied: insufficient permissions',
+      });
+    }
+    next();
+  };
+};
+
+module.exports = { authorizeRoles };
