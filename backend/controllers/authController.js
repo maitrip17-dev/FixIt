@@ -2,11 +2,16 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
 const User = require('../models/User');
+const connectDB = require('../config/db');
 
 /**
- * Check if MongoDB is connected
+ * Check if MongoDB is connected, and try to connect if disconnected
  */
-const isDBConnected = () => mongoose.connection.readyState === 1;
+const ensureDBConnected = async () => {
+  if (mongoose.connection.readyState === 1) return true;
+  await connectDB();
+  return mongoose.connection.readyState === 1;
+};
 
 /**
  * Generate a JWT signed token with 1-day expiration
@@ -28,13 +33,14 @@ const generateToken = (user) => {
 const registerUser = async (req, res) => {
   try {
     // Proactively verify database connection state
-    if (!isDBConnected()) {
+    const connected = await ensureDBConnected();
+    if (!connected) {
       return res.status(503).json({
         message: 'Database is not connected. Please ensure MongoDB is running or update MONGO_URI in backend/.env',
       });
     }
 
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role, skillCategory } = req.body;
 
     // Validate required fields
     if (!name || !email || !password) {
@@ -55,6 +61,9 @@ const registerUser = async (req, res) => {
     const validRoles = ['user', 'worker', 'admin'];
     const assignedRole = role && validRoles.includes(role) ? role : 'user';
 
+    const validCategories = ['Electrical', 'Plumbing', 'Cleaning', 'Internet', 'Furniture', 'Other'];
+    const assignedSkill = skillCategory && validCategories.includes(skillCategory) ? skillCategory : 'Other';
+
     // Hash password with bcryptjs (salt factor: 10)
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
@@ -65,6 +74,7 @@ const registerUser = async (req, res) => {
       email: email.toLowerCase().trim(),
       password: hashedPassword,
       role: assignedRole,
+      skillCategory: assignedRole === 'worker' ? assignedSkill : 'Other',
     });
 
     // Generate JWT token
@@ -78,6 +88,7 @@ const registerUser = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        skillCategory: user.skillCategory,
       },
     });
   } catch (error) {
@@ -97,7 +108,8 @@ const registerUser = async (req, res) => {
 const loginUser = async (req, res) => {
   try {
     // Proactively verify database connection state
-    if (!isDBConnected()) {
+    const connected = await ensureDBConnected();
+    if (!connected) {
       return res.status(503).json({
         message: 'Database is not connected. Please ensure MongoDB is running or update MONGO_URI in backend/.env',
       });
@@ -116,7 +128,7 @@ const loginUser = async (req, res) => {
     const user = await User.findOne({ email: email.toLowerCase().trim() });
     if (!user) {
       return res.status(400).json({
-        message: 'Invalid credentials',
+        message: 'No Registered User',
       });
     }
 
@@ -139,6 +151,7 @@ const loginUser = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        skillCategory: user.skillCategory || 'Other',
       },
     });
   } catch (error) {
@@ -164,6 +177,7 @@ const getMe = async (req, res) => {
         name: req.user.name,
         email: req.user.email,
         role: req.user.role,
+        skillCategory: req.user.skillCategory || 'Other',
         createdAt: req.user.createdAt,
         updatedAt: req.user.updatedAt,
       },

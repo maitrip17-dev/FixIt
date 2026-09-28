@@ -23,6 +23,11 @@ const userSchema = new mongoose.Schema(
       enum: ['user', 'worker', 'admin'],
       default: 'user',
     },
+    skillCategory: {
+      type: String,
+      enum: ['Electrical', 'Plumbing', 'Cleaning', 'Internet', 'Furniture', 'Other'],
+      default: 'Other',
+    },
   },
   {
     timestamps: true,
