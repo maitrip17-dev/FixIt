@@ -7,6 +7,7 @@ const Register = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('user');
+  const [skillCategory, setSkillCategory] = useState('Electrical');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -29,7 +30,7 @@ const Register = () => {
 
     setSubmitting(true);
     try {
-      await register(name, email, password, role);
+      await register(name, email, password, role, role === 'worker' ? skillCategory : 'Other');
       navigate('/dashboard', { replace: true });
     } catch (err) {
       setError(
@@ -108,10 +109,31 @@ const Register = () => {
               style={styles.select}
             >
               <option value="user">User (Submit & track tickets)</option>
-              <option value="worker">Worker (Resolve assigned tasks)</option>
-              <option value="admin">Admin (Manage & dispatch)</option>
+              <option value="worker">Worker (Browse & claim tasks)</option>
+              <option value="admin">Admin (Supervise & moderate)</option>
             </select>
           </div>
+
+          {role === 'worker' && (
+            <div style={styles.formGroup}>
+              <label htmlFor="skillCategory" style={styles.label}>
+                Primary Trade / Specialization
+              </label>
+              <select
+                id="skillCategory"
+                value={skillCategory}
+                onChange={(e) => setSkillCategory(e.target.value)}
+                style={styles.select}
+              >
+                <option value="Electrical">⚡ Electrical</option>
+                <option value="Plumbing">🔧 Plumbing</option>
+                <option value="Cleaning">🧹 Cleaning</option>
+                <option value="Internet">🌐 Internet & IT</option>
+                <option value="Furniture">🪑 Furniture & Carpentry</option>
+                <option value="Other">🛠️ General Maintenance / Other</option>
+              </select>
+            </div>
+          )}
 
           <button
             type="submit"
