@@ -18,6 +18,16 @@ const WorkerDashboard = () => {
   const [actionSuccess, setActionSuccess] = useState('');
   const [processingId, setProcessingId] = useState(null);
   const [categoryFilter, setCategoryFilter] = useState('');
+  const [cityFilter, setCityFilter] = useState('Same City');
+
+  const cityOptions = user?.city
+    ? ['Same City', ...['New York', 'Chicago', 'Houston', 'Los Angeles', 'San Francisco', 'Other'].filter((city) => city !== user.city)]
+    : ['Same City', 'New York', 'Chicago', 'Houston', 'Los Angeles', 'San Francisco', 'Other'];
+
+  const matchesWorkerCity = (item) => {
+    if (!user?.city || !item?.location) return false;
+    return item.location.toLowerCase().includes(user.city.toLowerCase());
+  };
 
   const fetchPool = async () => {
     try {
@@ -90,6 +100,24 @@ const WorkerDashboard = () => {
     (c) => c.status === 'Resolved' || c.status === 'Closed'
   );
 
+  const visiblePoolComplaints = [...poolComplaints]
+    .filter((item) => {
+      if (cityFilter === 'Same City') {
+        return matchesWorkerCity(item) || !user?.city;
+      }
+
+      if (!cityFilter || cityFilter === 'All Cities') {
+        return true;
+      }
+
+      return item.location?.toLowerCase().includes(cityFilter.toLowerCase());
+    })
+    .sort((a, b) => {
+      const aSameCity = matchesWorkerCity(a) ? 0 : 1;
+      const bSameCity = matchesWorkerCity(b) ? 0 : 1;
+      return aSameCity - bSameCity;
+    });
+
   const categories = ['Electrical', 'Plumbing', 'Cleaning', 'Internet', 'Furniture', 'Other'];
 
   const getPriorityStyle = (priority) => {
@@ -142,7 +170,7 @@ const WorkerDashboard = () => {
           }}
         >
           📥 Open Work Orders (Pool)
-          <span style={styles.tabBadge}>{poolComplaints.length}</span>
+          <span style={styles.tabBadge}>{visiblePoolComplaints.length}</span>
         </button>
 
         <button
@@ -173,6 +201,19 @@ const WorkerDashboard = () => {
         <div>
           {/* Category Filter Bar */}
           <div style={styles.filterBar}>
+            <span style={styles.filterTitle}>Filter City:</span>
+            <select
+              value={cityFilter}
+              onChange={(e) => setCityFilter(e.target.value)}
+              style={styles.citySelect}
+            >
+              {cityOptions.map((city) => (
+                <option key={city} value={city}>
+                  {city === 'Same City' ? `Same City (${user?.city || 'Your City'})` : city}
+                </option>
+              ))}
+            </select>
+
             <span style={styles.filterTitle}>Filter Category:</span>
             <div style={styles.filterChips}>
               <button
@@ -182,7 +223,7 @@ const WorkerDashboard = () => {
                   ...(categoryFilter === '' ? styles.activeChip : {}),
                 }}
               >
-                All Trades ({poolComplaints.length})
+                All Trades ({visiblePoolComplaints.length})
               </button>
               {categories.map((cat) => (
                 <button
@@ -202,7 +243,7 @@ const WorkerDashboard = () => {
 
           {loading ? (
             <div style={styles.loadingBox}>Scanning for available tickets...</div>
-          ) : poolComplaints.length === 0 ? (
+          ) : visiblePoolComplaints.length === 0 ? (
             <div style={styles.emptyCard}>
               <span style={styles.emptyIcon}>🎉</span>
               <h3 style={styles.emptyTitle}>Pool is all clear!</h3>
@@ -213,19 +254,24 @@ const WorkerDashboard = () => {
             </div>
           ) : (
             <div style={styles.grid}>
-              {poolComplaints.map((item) => {
+              {visiblePoolComplaints.map((item) => {
                 const isSkillMatch = user?.skillCategory && item.category === user.skillCategory;
+                const sameCityMatch = matchesWorkerCity(item);
                 return (
                   <div
                     key={item._id}
                     style={{
                       ...styles.card,
                       ...(isSkillMatch ? styles.skillMatchedCard : {}),
+                      ...(sameCityMatch ? styles.sameCityCard : {}),
                     }}
                   >
                     <div style={styles.cardHeader}>
                       <span style={styles.ticketId}>{item.ticketId}</span>
                       <div style={styles.pillGroup}>
+                        {sameCityMatch && (
+                          <span style={styles.matchPill}>📍 Same City</span>
+                        )}
                         {isSkillMatch && (
                           <span style={styles.matchPill}>★ Matches Your Trade</span>
                         )}
@@ -508,6 +554,21 @@ const styles = {
   matchedSkillChip: {
     border: '1px solid #3b82f6',
     fontWeight: '700',
+  },
+  citySelect: {
+    backgroundColor: '#ffffff',
+    border: '1px solid #cbd5e1',
+    borderRadius: '8px',
+    padding: '7px 12px',
+    fontSize: '12px',
+    color: '#334155',
+    fontWeight: '600',
+    minWidth: '170px',
+    outline: 'none',
+  },
+  sameCityCard: {
+    borderColor: '#34d399',
+    boxShadow: '0 0 0 1px rgba(52,211,153,0.2)',
   },
   grid: {
     display: 'grid',

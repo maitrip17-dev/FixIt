@@ -2,11 +2,14 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.js';
 
+const CITY_OPTIONS = ['New York', 'Chicago', 'Houston', 'Los Angeles', 'San Francisco', 'Other'];
+
 const Register = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('user');
+  const [city, setCity] = useState('New York');
   const [skillCategory, setSkillCategory] = useState('Electrical');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -18,7 +21,7 @@ const Register = () => {
     e.preventDefault();
     setError('');
 
-    if (!name || !email || !password) {
+    if (!name || !email || !password || !city) {
       setError('Please fill in all required fields.');
       return;
     }
@@ -30,7 +33,7 @@ const Register = () => {
 
     setSubmitting(true);
     try {
-      await register(name, email, password, role, role === 'worker' ? skillCategory : 'Other');
+      await register(name, email, password, role, role === 'worker' ? skillCategory : 'Other', city);
       navigate('/dashboard', { replace: true });
     } catch (err) {
       setError(
@@ -111,6 +114,24 @@ const Register = () => {
               <option value="user">User (Submit & track tickets)</option>
               <option value="worker">Worker (Browse & claim tasks)</option>
               <option value="admin">Admin (Supervise & moderate)</option>
+            </select>
+          </div>
+
+          <div style={styles.formGroup}>
+            <label htmlFor="city" style={styles.label}>
+              City
+            </label>
+            <select
+              id="city"
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+              style={styles.select}
+            >
+              {CITY_OPTIONS.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
             </select>
           </div>
 

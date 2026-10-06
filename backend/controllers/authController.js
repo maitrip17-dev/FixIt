@@ -40,7 +40,7 @@ const registerUser = async (req, res) => {
       });
     }
 
-    const { name, email, password, role, skillCategory } = req.body;
+    const { name, email, password, role, skillCategory, city } = req.body;
 
     // Validate required fields
     if (!name || !email || !password) {
@@ -64,6 +64,9 @@ const registerUser = async (req, res) => {
     const validCategories = ['Electrical', 'Plumbing', 'Cleaning', 'Internet', 'Furniture', 'Other'];
     const assignedSkill = skillCategory && validCategories.includes(skillCategory) ? skillCategory : 'Other';
 
+    const validCities = ['New York', 'Chicago', 'Houston', 'Los Angeles', 'San Francisco', 'Other'];
+    const assignedCity = city && validCities.includes(city) ? city : 'Other';
+
     // Hash password with bcryptjs (salt factor: 10)
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
@@ -74,6 +77,7 @@ const registerUser = async (req, res) => {
       email: email.toLowerCase().trim(),
       password: hashedPassword,
       role: assignedRole,
+      city: assignedCity,
       skillCategory: assignedRole === 'worker' ? assignedSkill : 'Other',
     });
 
@@ -88,6 +92,7 @@ const registerUser = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        city: user.city,
         skillCategory: user.skillCategory,
       },
     });
@@ -151,6 +156,7 @@ const loginUser = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        city: user.city || 'Other',
         skillCategory: user.skillCategory || 'Other',
       },
     });
@@ -177,6 +183,7 @@ const getMe = async (req, res) => {
         name: req.user.name,
         email: req.user.email,
         role: req.user.role,
+        city: req.user.city || 'Other',
         skillCategory: req.user.skillCategory || 'Other',
         createdAt: req.user.createdAt,
         updatedAt: req.user.updatedAt,

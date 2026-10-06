@@ -73,6 +73,26 @@ This project is a MERN-based maintenance and complaint management system with se
 - This mismatch caused the wrong UI to load on the complaints route and made the navigation structure inconsistent.
 - The fix restores the expected route-to-page mapping and aligns the app shell with the actual project structure.
 
+## Update 2: Shared city selection and worker same-city prioritization
+
+### Changed files
+- `backend/models/User.js`
+- `backend/controllers/authController.js`
+- `frontend/src/context/AuthContext.js`
+- `frontend/src/pages/Register.js`
+- `frontend/src/components/dashboards/WorkerDashboard.js`
+
+### What changed
+- Added a shared `city` field to user records for both users and workers.
+- Added a city dropdown during registration so a city is selected for both account types.
+- Stored the selected city in the authentication response and persisted it in local storage.
+- Updated the worker dashboard to surface the `Same City` option first and sort same-city jobs before others.
+
+### Why this change was necessary
+- The app already had a role and skill model, but no shared city profile field.
+- Workers need to see the most relevant jobs first, and the same-city job list is the most relevant match for local service requests.
+- Keeping the city field across user and worker registration makes the system more realistic and preserves existing features while improving the worker prioritization flow.
+
 ### Next priority
 4. Add automated tests for backend and frontend.
 5. Upgrade vulnerable dependencies and run audit checks.
