@@ -23,6 +23,11 @@ const userSchema = new mongoose.Schema(
       enum: ['user', 'worker', 'admin'],
       default: 'user',
     },
+    city: {
+      type: String,
+      enum: ['New York', 'Chicago', 'Houston', 'Los Angeles', 'San Francisco', 'Other'],
+      default: 'Other',
+    },
     skillCategory: {
       type: String,
       enum: ['Electrical', 'Plumbing', 'Cleaning', 'Internet', 'Furniture', 'Other'],

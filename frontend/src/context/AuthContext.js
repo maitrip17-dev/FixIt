@@ -66,8 +66,8 @@ export const AuthProvider = ({ children }) => {
    * @param {string} password
    * @param {string} role
    */
-  const register = async (name, email, password, role = 'user', skillCategory = 'Other') => {
-    const response = await api.post('/auth/register', { name, email, password, role, skillCategory });
+  const register = async (name, email, password, role = 'user', skillCategory = 'Other', city = 'Other') => {
+    const response = await api.post('/auth/register', { name, email, password, role, skillCategory, city });
     const { token: receivedToken, user: receivedUser } = response.data;
 
     // Save to state
