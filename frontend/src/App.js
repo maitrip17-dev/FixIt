@@ -43,7 +43,7 @@ function App() {
           path="/complaints"
           element={
             <ProtectedLayout>
-              <Dashboard />
+              <ComplaintsList />
             </ProtectedLayout>
           }
         />
